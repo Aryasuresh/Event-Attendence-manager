@@ -2,6 +2,7 @@ package com.sample.attendence
 
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import android.support.v7.app.AlertDialog
 import android.util.Log
 import android.view.View
 import kotlinx.android.synthetic.main.activity_main.*
@@ -19,7 +20,13 @@ class LoginActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+         val pref =getSharedPreferences("events",0)
 
+
+         if (pref.getString("access_token","")!=""){
+             startActivity(intentFor<EventsActivity>())
+             finish()
+         }
     }
     fun doLogin(view: View) {
         if (username.text.toString().isEmpty() || password.text.toString().isEmpty())
@@ -50,7 +57,10 @@ class LoginActivity : AppCompatActivity() {
                         if(response.body()!=null) {
                             val jsonResponse = JSONObject(response.body()!!.string())
                             val accessToken=jsonResponse.getString("access_token")
-                            Log.d("ACCESS",accessToken)
+                            val pref=getSharedPreferences("events",0)
+                            val editor=pref.edit()
+                            editor.putString("access_token",accessToken)
+                            editor.apply()
 
                             startActivity(intentFor<EventsActivity>())
                             finish()
@@ -59,6 +69,13 @@ class LoginActivity : AppCompatActivity() {
 
                     }
                     400->{
+                          AlertDialog.Builder(this@LoginActivity)
+                                  .setTitle("error")
+                                  .setMessage("an error is occured")
+                                  .setNeutralButton("ok") {dialog,which ->
+                                      dialog.dismiss()
+                                  }
+                                  .show()
 
                     }
                     404->{
